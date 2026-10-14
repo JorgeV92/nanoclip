@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nanoclip"
+version = "0.1.0"
+description = "A small, readable CLIP training lab in PyTorch and optional Triton"
+readme = "README.md"
+requires-python = ">=3.11,<3.14"
+dependencies = ["torch==2.9.1", "numpy>=1.26,<3", "pillow>=10.4"]
+
+[project.optional-dependencies]
+cpu = []
+gpu = ["triton==3.5.1; sys_platform == 'linux' and platform_machine == 'x86_64'"]
+data = ["datasets>=3.2,<5"]
+
+[dependency-groups]
+dev = ["pytest>=8.3", "ruff>=0.11"]
+
+[tool.uv]
+conflicts = [[{ extra = "cpu" }, { extra = "gpu" }]]
+
+[tool.uv.sources]
+torch = [
+  { index = "pytorch-cpu", extra = "cpu", marker = "sys_platform != 'darwin'" },
+  { index = "pytorch-cu128", extra = "gpu", marker = "sys_platform == 'linux' and platform_machine == 'x86_64'" },
+]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
+
+[tool.setuptools.packages.find]
+include = ["nanoclip*", "scripts*", "benchmarks*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["cuda: requires a supported NVIDIA CUDA GPU and Triton"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
